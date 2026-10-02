@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 
-export default function Navbar({ activeTab, setActiveTab, onLoginClick }) {
+export default function Navbar({ activeTab, setActiveTab, onLoginClick, user, onLogout }) {
   const [isOpen, setIsOpen] = useState(false)
 
   const navigateTo = (tab) => {
@@ -54,11 +54,8 @@ export default function Navbar({ activeTab, setActiveTab, onLoginClick }) {
             ))}
           </div>
 
-          {/* Botón Login Desktop */}
-          <div className="hidden md:block">
-            <button type="button" onClick={onLoginClick} className="bg-[#1E5B42] text-white px-6 py-2 rounded-lg hover:bg-[#154431] transition font-medium">
-              Iniciar Sesión
-            </button>
+          <div className="hidden md:flex items-center gap-3">
+            {user ? <><div className="text-right"><p className="font-semibold text-[#1E5B42]">{user.name}</p><p className="text-xs text-[#212121]/65">{user.roleLabel}</p></div><button type="button" onClick={onLogout} className="flex items-center gap-2 rounded-lg border border-[#1E5B42] px-3 py-2 text-sm font-semibold text-[#1E5B42] transition hover:bg-[#1E5B42]/10"><LogOut size={17} /> Cerrar sesión</button></> : <button type="button" onClick={onLoginClick} className="rounded-lg bg-[#1E5B42] px-6 py-2 font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
           </div>
 
           {/* Botón Menú Mobile */}
@@ -83,9 +80,7 @@ export default function Navbar({ activeTab, setActiveTab, onLoginClick }) {
                 {item.label}
               </button>
             ))}
-            <button type="button" onClick={onLoginClick} className="w-full mt-2 bg-[#1E5B42] text-white px-4 py-2 rounded-lg hover:bg-[#154431] transition font-medium">
-              Iniciar Sesión
-            </button>
+            {user ? <div className="mt-2 flex items-center justify-between gap-3 border-t border-gray-200 px-3 pt-3"><div><p className="font-semibold text-[#1E5B42]">{user.name}</p><p className="text-xs text-[#212121]/65">{user.roleLabel}</p></div><button type="button" onClick={() => { onLogout(); setIsOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[#1E5B42] hover:bg-[#F4F6F5]"><LogOut size={17} /> Salir</button></div> : <button type="button" onClick={() => { onLoginClick(); setIsOpen(false) }} className="mt-2 w-full rounded-lg bg-[#1E5B42] px-4 py-2 font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
           </div>
         </div>
       )}

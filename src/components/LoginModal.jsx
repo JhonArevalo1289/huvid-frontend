@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Eye, EyeOff, LockKeyhole, Mail, X } from 'lucide-react'
 
-export default function LoginModal({ onClose }) {
+export default function LoginModal({ onClose, onLogin }) {
   const [showPassword, setShowPassword] = useState(false)
-  const [credentials, setCredentials] = useState({ email: '', password: '' })
-  const [message, setMessage] = useState('')
+  const [credentials, setCredentials] = useState({ email: '', password: '', role: 'ciudadano' })
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -13,7 +12,14 @@ export default function LoginModal({ onClose }) {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    setMessage('Demo lista: conecta este formulario con tu servicio de autenticación.')
+    const displayName = credentials.email.split('@')[0].replace(/[._-]+/g, ' ')
+    onLogin({
+      name: displayName.replace(/\b\w/g, (character) => character.toUpperCase()),
+      email: credentials.email,
+      role: credentials.role,
+      roleLabel: credentials.role === 'fundacion' ? 'Fundación' : 'Ciudadano',
+    })
+    onClose()
   }
 
   return (
@@ -46,8 +52,15 @@ export default function LoginModal({ onClose }) {
               </button>
             </span>
           </label>
+          <label className="block text-sm font-semibold text-[#212121]">
+            Tipo de cuenta
+            <select name="role" value={credentials.role} onChange={handleChange} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2.5 outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42]/20">
+              <option value="ciudadano">Ciudadano</option>
+              <option value="fundacion">Fundación</option>
+            </select>
+          </label>
           <button type="submit" className="w-full rounded-lg bg-[#1E5B42] px-4 py-3 font-bold text-white transition hover:bg-[#154431]">Ingresar</button>
-          {message && <p className="rounded-lg bg-[#F4F6F5] p-3 text-sm text-[#1E5B42]" role="status">{message}</p>}
+          <p className="text-center text-xs text-[#212121]/60">Acceso de demostración: ingresa cualquier correo y contraseña.</p>
           <button type="button" onClick={onClose} className="w-full text-sm font-semibold text-[#1E5B42] hover:text-[#E67E22]">Continuar como visitante</button>
         </form>
       </div>

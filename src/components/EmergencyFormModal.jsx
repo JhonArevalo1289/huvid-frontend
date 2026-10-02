@@ -1,22 +1,26 @@
 import { useState } from 'react'
-import { X, Upload, Phone, Mail } from 'lucide-react'
+import { X } from 'lucide-react'
 
 /**
  * Componente EmergencyFormModal - Modal para reportar emergencias
  * @param {boolean} isOpen - Controla visibilidad del modal
  * @param {Function} onClose - Callback al cerrar el modal
  */
-export default function EmergencyFormModal({ isOpen, onClose }) {
+const localidadesBogota = [
+  'Usaquén', 'Chapinero', 'Santa Fe', 'San Cristóbal', 'Usme', 'Tunjuelito',
+  'Bosa', 'Kennedy', 'Fontibón', 'Engativá', 'Suba', 'Barrios Unidos',
+  'Teusaquillo', 'Los Mártires', 'Antonio Nariño', 'Puente Aranda', 'La Candelaria',
+  'Rafael Uribe Uribe', 'Ciudad Bolívar', 'Sumapaz',
+]
+
+export default function EmergencyFormModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     localidad: '',
-    tipoCase: '',
-    especie: '',
+    tipo: '',
+    direccion: '',
     descripcion: '',
-    telefono: '',
-    email: '',
+    urgencia: '',
   })
-
-  const [photoPreview, setPhotoPreview] = useState(null)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -26,22 +30,10 @@ export default function EmergencyFormModal({ isOpen, onClose }) {
     }))
   }
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Formulario enviado:', formData)
-    // Aquí iría la lógica para enviar el formulario
-    onClose()
+    onSubmit(formData)
+    setFormData({ localidad: '', tipo: '', direccion: '', descripcion: '', urgencia: '' })
   }
 
   if (!isOpen) return null
@@ -64,142 +56,59 @@ export default function EmergencyFormModal({ isOpen, onClose }) {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           
-          {/* Localidad/Barrio */}
           <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Localidad/Barrio en Bogotá *
-            </label>
-            <input
-              type="text"
-              name="localidad"
-              value={formData.localidad}
-              onChange={handleInputChange}
-              placeholder="Ej: Chapinero, La Candelaria"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30"
-              required
-            />
+            <label className="mb-2 block text-sm font-semibold text-[#212121]">Localidad de Bogotá *</label>
+            <select name="localidad" value={formData.localidad} onChange={handleInputChange} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#1E5B42] focus:outline-none focus:ring-2 focus:ring-[#1E5B42]/20" required>
+              <option value="">Selecciona una localidad</option>
+              {localidadesBogota.map((localidad) => <option key={localidad} value={localidad}>{localidad}</option>)}
+            </select>
           </div>
 
-          {/* Tipo de Caso */}
           <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Tipo de Caso *
-            </label>
-            <select
-              name="tipoCase"
-              value={formData.tipoCase}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30"
-              required
-            >
-              <option value="">Selecciona un tipo de caso</option>
-              <option value="maltrato">Maltrato Animal</option>
-              <option value="perdido">Animal Perdido</option>
-              <option value="lesionado">Animal Lesionado</option>
+            <label className="mb-2 block text-sm font-semibold text-[#212121]">Tipo de emergencia *</label>
+            <select name="tipo" value={formData.tipo} onChange={handleInputChange} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#1E5B42] focus:outline-none focus:ring-2 focus:ring-[#1E5B42]/20" required>
+              <option value="">Selecciona el tipo de emergencia</option>
+              <option value="maltrato">Maltrato animal</option>
+              <option value="perdido">Animal perdido</option>
+              <option value="lesionado">Animal lesionado</option>
               <option value="abandono">Abandono</option>
             </select>
           </div>
 
-          {/* Especie/Raza */}
           <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Especie/Raza *
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-[#212121]">Dirección *</label>
             <input
-              type="text"
-              name="especie"
-              value={formData.especie}
+              name="direccion"
+              value={formData.direccion}
               onChange={handleInputChange}
-              placeholder="Ej: Perro, Gato, Loro, etc."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30"
+              placeholder="Calle, carrera, número o punto de referencia"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#1E5B42] focus:outline-none focus:ring-2 focus:ring-[#1E5B42]/20"
               required
             />
           </div>
 
-          {/* Descripción */}
           <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Descripción del Estado de Salud *
-            </label>
+            <label className="mb-2 block text-sm font-semibold text-[#212121]">Descripción *</label>
             <textarea
               name="descripcion"
               value={formData.descripcion}
               onChange={handleInputChange}
-              placeholder="Describe el estado, comportamiento y cualquier detalle importante..."
+              placeholder="Describe qué ocurrió y el estado del animal..."
               rows="4"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30 resize-none"
               required
             />
           </div>
 
-          {/* Adjuntar Foto */}
           <div>
-            <label className="block text-sm font-semibold text-[#212121] mb-2">
-              Adjuntar Foto
-            </label>
-            <div className="flex items-center gap-4">
-              <label className="flex-1 flex items-center justify-center border-2 border-dashed border-[#1E5B42] rounded-lg p-6 cursor-pointer hover:bg-[#F4F6F5] transition">
-                <div className="text-center">
-                  <Upload size={32} className="text-[#1E5B42] mx-auto mb-2" />
-                  <span className="text-sm text-[#212121]">Click para seleccionar foto</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="hidden"
-                />
-              </label>
-              
-              {photoPreview && (
-                <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-300">
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Datos de Contacto */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-[#212121] mb-2">
-                Teléfono *
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 text-[#1E5B42]" size={20} />
-                <input
-                  type="tel"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 3001234567"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-[#212121] mb-2">
-                Email *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 text-[#1E5B42]" size={20} />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Ej: tu@email.com"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#1E5B42] focus:ring-2 focus:ring-[#1E5B42] focus:ring-opacity-30"
-                  required
-                />
-              </div>
-            </div>
+            <label className="mb-2 block text-sm font-semibold text-[#212121]">Nivel de urgencia *</label>
+            <select name="urgencia" value={formData.urgencia} onChange={handleInputChange} className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-[#1E5B42] focus:outline-none focus:ring-2 focus:ring-[#1E5B42]/20" required>
+              <option value="">Selecciona el nivel de urgencia</option>
+              <option value="baja">Baja</option>
+              <option value="media">Media</option>
+              <option value="alta">Alta</option>
+              <option value="critica">Crítica</option>
+            </select>
           </div>
 
           {/* Botones de Acción */}
