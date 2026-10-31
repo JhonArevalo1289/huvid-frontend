@@ -1,19 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import BlogNews from './components/BlogNews' // Componente de noticias
 import EmergencyFormModal from './components/EmergencyFormModal'
 import AdoptionGrid from './components/AdoptionGrid'
+import AdminDashboard from './components/AdminDashboard'
 import AlliedVeterinarians from './components/AlliedVeterinarians'
+import CasosList from './components/CasosList'
 import LoginModal from './components/LoginModal' // Modal de Login
 import Footer from './components/Footer'
 import './index.css'
-
-const initialPets = [
-  { id: 1, nombre: 'Luna', especie: 'Gata', raza: 'Criolla', salud: 'Excelente', ubicacion: 'Chapinero', imagen: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&h=450&fit=crop', estado: 'Disponible' },
-  { id: 2, nombre: 'Max', especie: 'Perro', raza: 'Golden Retriever', salud: 'Bueno', ubicacion: 'Usaquén', imagen: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&h=450&fit=crop', estado: 'Disponible' },
-  { id: 3, nombre: 'Mico', especie: 'Perro', raza: 'Beagle', salud: 'Excelente', ubicacion: 'La Candelaria', imagen: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&h=450&fit=crop', estado: 'Disponible' },
-]
 
 const readStoredValue = (key, fallback) => {
   try {
@@ -24,42 +20,107 @@ const readStoredValue = (key, fallback) => {
   }
 }
 
-function App() {
-  const [activeTab, setActiveTab] = useState('inicio') // 'inicio', 'reportar', 'adopciones', 'veterinarias'
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [isEmergencyOpen, setIsEmergencyOpen] = useState(false)
-  const [pets, setPets] = useState(() => readStoredValue('huvid-pets', initialPets))
-  const [emergencyReports, setEmergencyReports] = useState(() => readStoredValue('huvid-emergency-reports', []))
-  const [user, setUser] = useState(() => readStoredValue('huvid-user', null))
-  const [notification, setNotification] = useState('')
+const readStoredAuth = () => {
+  const storedUser = readStoredValue('huvid_user', readStoredValue('huvid-user', null))
+  const token = window.localStorage.getItem('huvid_token') || storedUser?.token
 
-  useEffect(() => {
-    window.localStorage.setItem('huvid-pets', JSON.stringify(pets))
-  }, [pets])
-
-  useEffect(() => {
-    window.localStorage.setItem('huvid-emergency-reports', JSON.stringify(emergencyReports))
-  }, [emergencyReports])
-
-  useEffect(() => {
-    if (user) {
-      window.localStorage.setItem('huvid-user', JSON.stringify(user))
-    } else {
-      window.localStorage.removeItem('huvid-user')
-    }
-  }, [user])
-
-  const handleAdoptionRequest = (petId, application) => {
-    setPets((currentPets) => currentPets.map((pet) => (
-      pet.id === petId ? { ...pet, estado: 'Solicitado', solicitud: application } : pet
-    )))
+  if (!token || !storedUser || typeof storedUser !== 'object' || !storedUser.id || !storedUser.email || !storedUser.nombre) {
+    return { user: null, token: null }
   }
 
-  const handleEmergencySubmit = (report) => {
-    setEmergencyReports((currentReports) => [
-      { ...report, id: Date.now(), createdAt: new Date().toISOString() },
-      ...currentReports,
-    ])
+  const user = {
+    id: storedUser.id,
+    nombre: storedUser.nombre,
+    email: storedUser.email,
+    rol_id: storedUser.rol_id,
+  }
+  return { user, token }
+}
+
+function App() {
+  const [activeTab, setActiveTab] = useState('inicio')
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isEmergencyOpen, setIsEmergencyOpen] = useState(false)
+  const [auth, setAuth] = useState(readStoredAuth)
+  const [notification, setNotification] = useState('')
+  const user = auth.user
+
+  const handleLogin = ({ user: authenticatedUser, token }) => {
+    window.localStorage.setItem('huvid_token', token)
+    window.localStorage.setItem('huvid_user', JSON.stringify(authenticatedUser))
+    setAuth({ user: authenticatedUser, token })
+    if (activeTab === 'reportar') {
+      setIsEmergencyOpen(true)
+      setNotification('')
+    }
+  }
+
+  const handleLogout = () => {
+    window.localStorage.removeItem('huvid_token')
+    window.localStorage.removeItem('huvid_user')
+    window.localStorage.removeItem('huvid-user')
+    setAuth({ user: null, token: null })
+    if (activeTab === 'admin') {
+      setActiveTab('inicio')
+    }
+  }
+
+  const handleReportClick = () => {
+    setActiveTab('reportar')
+    if (auth.token) {
+      setIsEmergencyOpen(true)
+      return
+    }
+    setNotification('Inicia sesión para registrar un reporte de emergencia.')
+    setIsLoginOpen(true)
+  }
+
+  const handleOpenEmergencyForm = () => {
+    if (!auth.token) {
+      setNotification('Inicia sesión para registrar un reporte de emergencia.')
+      setIsLoginOpen(true)
+      return
+    }
+    setIsEmergencyOpen(true)
+  }
+
+  const handleEmergencySubmit = async (report) => {
+    if (!auth.token) {
+      throw new Error('Tu sesión no está activa. Inicia sesión para enviar el reporte.')
+    }
+
+    const formData = new FormData()
+    formData.append('localidad', report.localidad)
+    formData.append('tipo', report.tipo)
+    formData.append('direccion', report.direccion)
+    formData.append('descripcion', report.descripcion)
+    formData.append('urgencia', report.urgencia)
+    if (report.foto) {
+      formData.append('foto', report.foto)
+    }
+
+    let response
+    try {
+      response = await fetch('http://localhost:3000/api/emergencias', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${auth.token}` },
+        body: formData,
+      })
+    } catch {
+      throw new Error('No fue posible conectar con el servidor. Inténtalo nuevamente.')
+    }
+
+    let result
+    try {
+      result = await response.json()
+    } catch {
+      throw new Error('El servidor devolvió una respuesta inválida. Inténtalo nuevamente.')
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || 'No fue posible enviar el reporte. Inténtalo nuevamente.')
+    }
+
     setIsEmergencyOpen(false)
     setActiveTab('inicio')
     setNotification('Reporte enviado correctamente. Gracias por ayudar a un animal.')
@@ -75,7 +136,7 @@ function App() {
           setActiveTab={setActiveTab} 
           onLoginClick={() => setIsLoginOpen(true)} 
           user={user}
-          onLogout={() => setUser(null)}
+          onLogout={handleLogout}
         />
 
         {/* Renderizado condicional según la pestaña seleccionada */}
@@ -90,7 +151,7 @@ function App() {
           {activeTab === 'inicio' && (
             <>
               <Hero 
-                onReportClick={() => setActiveTab('reportar')} 
+                onReportClick={handleReportClick}
                 onAdoptionClick={() => setActiveTab('adopciones')} 
               />
               <BlogNews />
@@ -102,19 +163,24 @@ function App() {
               <div className="rounded-xl bg-white p-8 shadow-md">
               <h2 className="text-2xl font-bold text-[#1E5B42] mb-4">Reportar Caso o Emergencia</h2>
               <p className="mb-6 text-[#212121]/70">Reporta maltrato, pérdida o lesiones para activar una ruta de atención en Bogotá.</p>
-              <button type="button" onClick={() => setIsEmergencyOpen(true)} className="rounded-lg bg-[#D32F2F] px-6 py-3 font-bold text-white hover:bg-[#B71C1C]">Abrir formulario de reporte</button>
+              {!user && <p className="mb-4 text-sm text-[#212121]/70">Debes iniciar sesión para enviar un reporte.</p>}
+              <button type="button" onClick={handleOpenEmergencyForm} className="rounded-lg bg-[#D32F2F] px-6 py-3 font-bold text-white hover:bg-[#B71C1C]">Abrir formulario de reporte</button>
               </div>
             </div>
           )}
 
-          {activeTab === 'adopciones' && <AdoptionGrid pets={pets} onAdoptionRequest={handleAdoptionRequest} />}
+          {activeTab === 'adopciones' && <AdoptionGrid token={auth.token} user={user} onLoginClick={() => setIsLoginOpen(true)} />}
 
           {activeTab === 'veterinarias' && <AlliedVeterinarians />}
+
+          {activeTab === 'casos' && <CasosList token={auth.token} onLoginClick={() => setIsLoginOpen(true)} />}
+
+          {activeTab === 'admin' && <AdminDashboard token={auth.token} user={user} />}
         </main>
       </div>
 
       <EmergencyFormModal isOpen={isEmergencyOpen} onClose={() => setIsEmergencyOpen(false)} onSubmit={handleEmergencySubmit} />
-      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={setUser} />}
+      {isLoginOpen && <LoginModal onClose={() => setIsLoginOpen(false)} onLogin={handleLogin} />}
       
       <Footer setActiveTab={setActiveTab} />
     </div>

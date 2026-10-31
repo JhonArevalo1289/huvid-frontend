@@ -13,9 +13,14 @@ export default function Navbar({ activeTab, setActiveTab, onLoginClick, user, on
   const navigationItems = [
     { id: 'inicio', label: 'Inicio' },
     { id: 'reportar', label: 'Reportar Caso' },
+    { id: 'casos', label: 'Emergencias' },
     { id: 'adopciones', label: 'Adopciones' },
     { id: 'veterinarias', label: 'Veterinarias Aliadas' },
+    ...(user && ['2', '3'].includes(String(user.rol_id)) ? [{ id: 'admin', label: 'Administración' }] : []),
   ]
+  const roleLabel = String(user?.rol_id) === '3'
+    ? 'Administrador'
+    : String(user?.rol_id) === '2' ? 'Fundación' : 'Ciudadano'
 
   return (
     <nav className="bg-white border-b-4 border-[#1E5B42] shadow-sm sticky top-0 z-50">
@@ -46,20 +51,20 @@ export default function Navbar({ activeTab, setActiveTab, onLoginClick, user, on
           </button>
 
           {/* Menú Desktop */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 lg:flex xl:gap-5">
             {navigationItems.map((item) => (
-              <button key={item.id} type="button" onClick={() => navigateTo(item.id)} className={`font-medium transition ${activeTab === item.id ? 'text-[#1E5B42] border-b-2 border-[#E67E22] pb-1' : 'text-[#212121] hover:text-[#1E5B42]'}`} aria-current={activeTab === item.id ? 'page' : undefined}>
+              <button key={item.id} type="button" onClick={() => navigateTo(item.id)} className={`shrink-0 whitespace-nowrap rounded-lg text-sm font-medium transition ${item.id === 'admin' ? 'border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-semibold text-emerald-800 hover:bg-emerald-100' : activeTab === item.id ? 'text-[#1E5B42] border-b-2 border-[#E67E22] pb-1' : 'text-[#212121] hover:text-[#1E5B42]'}`} aria-current={activeTab === item.id ? 'page' : undefined}>
                 {item.label}
               </button>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
-            {user ? <><div className="text-right"><p className="font-semibold text-[#1E5B42]">{user.name}</p><p className="text-xs text-[#212121]/65">{user.roleLabel}</p></div><button type="button" onClick={onLogout} className="flex items-center gap-2 rounded-lg border border-[#1E5B42] px-3 py-2 text-sm font-semibold text-[#1E5B42] transition hover:bg-[#1E5B42]/10"><LogOut size={17} /> Cerrar sesión</button></> : <button type="button" onClick={onLoginClick} className="rounded-lg bg-[#1E5B42] px-6 py-2 font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
+          <div className="hidden shrink-0 items-center gap-2 border-l border-gray-200 pl-4 lg:flex">
+            {user ? <><div className="text-right"><p className="font-semibold text-[#1E5B42]">{user.nombre}</p><p className="text-xs text-[#212121]/65">{roleLabel}</p></div><button type="button" onClick={onLogout} className="flex items-center gap-2 rounded-lg border border-[#1E5B42] px-3 py-2 text-sm font-semibold text-[#1E5B42] transition hover:bg-[#1E5B42]/10"><LogOut size={17} /> Cerrar sesión</button></> : <button type="button" onClick={onLoginClick} className="rounded-lg bg-[#1E5B42] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
           </div>
 
           {/* Botón Menú Mobile */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <button
               type="button"
               onClick={() => setIsOpen((current) => !current)}
@@ -73,14 +78,14 @@ export default function Navbar({ activeTab, setActiveTab, onLoginClick, user, on
 
       {/* Menú Mobile */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="lg:hidden bg-white border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigationItems.map((item) => (
               <button key={item.id} type="button" onClick={() => navigateTo(item.id)} className={`block w-full rounded-md px-3 py-2 text-left transition ${activeTab === item.id ? 'bg-[#F4F6F5] font-semibold text-[#1E5B42]' : 'text-[#212121] hover:bg-[#F4F6F5]'}`}>
                 {item.label}
               </button>
             ))}
-            {user ? <div className="mt-2 flex items-center justify-between gap-3 border-t border-gray-200 px-3 pt-3"><div><p className="font-semibold text-[#1E5B42]">{user.name}</p><p className="text-xs text-[#212121]/65">{user.roleLabel}</p></div><button type="button" onClick={() => { onLogout(); setIsOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[#1E5B42] hover:bg-[#F4F6F5]"><LogOut size={17} /> Salir</button></div> : <button type="button" onClick={() => { onLoginClick(); setIsOpen(false) }} className="mt-2 w-full rounded-lg bg-[#1E5B42] px-4 py-2 font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
+            {user ? <div className="mt-2 flex items-center justify-between gap-3 border-t border-gray-200 px-3 pt-3"><div><p className="font-semibold text-[#1E5B42]">{user.nombre}</p><p className="text-xs text-[#212121]/65">{roleLabel}</p></div><button type="button" onClick={() => { onLogout(); setIsOpen(false) }} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[#1E5B42] hover:bg-[#F4F6F5]"><LogOut size={17} /> Salir</button></div> : <button type="button" onClick={() => { onLoginClick(); setIsOpen(false) }} className="mt-2 w-full rounded-lg bg-[#1E5B42] px-4 py-2 font-medium text-white transition hover:bg-[#154431]">Iniciar sesión</button>}
           </div>
         </div>
       )}

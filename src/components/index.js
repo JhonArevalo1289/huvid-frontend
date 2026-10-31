@@ -4,6 +4,8 @@
 export { default as Navbar } from './Navbar'
 export { default as Hero } from './Hero'
 export { default as EmergencyFormModal } from './EmergencyFormModal'
+export { default as CasosList } from './CasosList'
 export { default as AdoptionGrid } from './AdoptionGrid'
+export { default as AdminDashboard } from './AdminDashboard'
 export { default as AlliedVeterinarians } from './AlliedVeterinarians'
 export { default as Footer } from './Footer'
