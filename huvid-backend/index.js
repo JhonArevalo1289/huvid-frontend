@@ -19,6 +19,9 @@ app.use('/api', (_request, response, next) => {
   next()
 })
 app.use('/api', apiRouter)
+app.use('/api', (_request, response) => {
+  response.status(404).json({ error: 'Ruta de API no encontrada.' })
+})
 app.use(errorHandler)
 
 app.listen(env.port, () => {

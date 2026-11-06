@@ -95,12 +95,18 @@ CREATE TABLE IF NOT EXISTS noticias (
   titulo VARCHAR(200) NOT NULL,
   resumen TEXT,
   contenido TEXT NOT NULL,
+  tipo VARCHAR(20) NOT NULL DEFAULT 'noticia',
   imagen_url TEXT,
+  fecha_evento DATE,
   publicada BOOLEAN NOT NULL DEFAULT FALSE,
   publicada_en TIMESTAMPTZ,
   creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   actualizado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE noticias
+  ADD COLUMN IF NOT EXISTS tipo VARCHAR(20) NOT NULL DEFAULT 'noticia',
+  ADD COLUMN IF NOT EXISTS fecha_evento DATE;
 
 CREATE INDEX IF NOT EXISTS idx_usuarios_rol_id ON usuarios(rol_id);
 CREATE INDEX IF NOT EXISTS idx_casos_localidad_estado ON casos_emergencia(localidad_id, estado);

@@ -22,12 +22,12 @@ const storage = multer.diskStorage({
   },
 })
 
-export const uploadEmergencyPhoto = multer({
+const imageUpload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   fileFilter: (_request, file, callback) => {
     if (!allowedImageTypes.has(file.mimetype)) {
-      const error = new Error('La evidencia debe ser una imagen JPG, PNG, WEBP o GIF.')
+      const error = new Error('La imagen debe ser JPG, PNG, WEBP o GIF.')
       error.status = 400
       callback(error)
       return
@@ -35,7 +35,10 @@ export const uploadEmergencyPhoto = multer({
 
     callback(null, true)
   },
-}).single('foto')
+})
+
+export const uploadEmergencyPhoto = imageUpload.single('foto')
+export const uploadNewsImage = imageUpload.single('imagen')
 
 export function handleEmergencyUploadError(error, _request, response, next) {
   if (!error) {

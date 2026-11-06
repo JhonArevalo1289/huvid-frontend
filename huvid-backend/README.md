@@ -58,9 +58,11 @@ El CORS permite credenciales desde los orígenes listados en `CORS_ORIGIN` (por 
 - `GET /api/adopciones`: lista mascotas disponibles con localidad, edad, descripción e imagen.
 - `POST /api/adopciones/:mascotaId/solicitudes`: registra una solicitud para una mascota disponible; requiere `Authorization: Bearer <token>` y JSON con `nombre`, `telefono`, `motivo` y `direccion`. La mascota pasa a estado `solicitado` al guardar la solicitud.
 - `GET /api/veterinarias`: lista las veterinarias aliadas activas, con localidad, contacto, horario y servicios.
+- `GET /api/noticias`: lista noticias y eventos publicados, ordenados por fecha.
 - `GET /api/localidades`: lista las localidades disponibles para los formularios.
 - `POST /api/admin/mascotas`: registra una mascota en adopción; requiere JWT de fundación o administrador y `multipart/form-data` con `nombre`, `especie`, `edad`, `localidad`, `descripcion` y una imagen opcional en `foto`.
 - `POST /api/admin/veterinarias`: registra una veterinaria aliada; requiere JWT de fundación o administrador y JSON con `nombre`, `direccion`, `telefono`, `horario_atencion`, `servicios` (arreglo de textos) y `localidad`.
+- `POST /api/admin/noticias`: publica una noticia o evento; requiere JWT de fundación o administrador y `multipart/form-data` con `titulo`, `contenido`, `tipo` (`noticia` o `evento`), `resumen` opcional, `fecha_evento` para eventos e imagen opcional en `imagen`.
 - `GET /api/casos`: lista los reportes con el nombre de la localidad y ordenados del más reciente; requiere `Authorization: Bearer <token>`.
 - `PATCH /api/casos/:id/estado`: actualiza el estado de un reporte autenticado. Recibe JSON con `estado`: `recibido`, `en_revision`, `en_atencion`, `resuelto` o `cerrado`.
 - `POST /api/auth/register`: crea una cuenta con contraseña cifrada y devuelve usuario y JWT. Recibe `name`, `email`, `password` y opcionalmente `role` (`ciudadano` por defecto; también `fundacion`).
